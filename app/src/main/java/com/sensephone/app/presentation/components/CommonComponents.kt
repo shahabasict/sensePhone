@@ -22,9 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -194,7 +194,7 @@ fun ScreenHeader(
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Filled.KeyboardArrowLeft, contentDescription = "Back", tint = SenseColors.Cyan)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", tint = SenseColors.Cyan)
             }
         }
         Column {
@@ -237,7 +237,7 @@ fun QuickLinkCard(
                 Text(text = title, style = MaterialTheme.typography.titleMedium, color = accent)
                 Text(text = subtitle, style = MaterialTheme.typography.bodySmall)
             }
-            Icon(Icons.Filled.KeyboardArrowRight, contentDescription = null, tint = accent)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = accent)
         }
     }
 }

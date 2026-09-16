@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -192,7 +192,7 @@ private fun FeaturedSensorCard(
                 StatusPill(available = available, liveText = "LIVE", unavailableText = "N/A")
                 IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
                     Icon(
-                        Icons.Filled.KeyboardArrowRight,
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Open ${kind.displayName}",
                         tint = if (available) SenseColors.Cyan else SenseColors.TextMuted,
                         modifier = Modifier.size(18.dp)

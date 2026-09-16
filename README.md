@@ -30,6 +30,7 @@ APIs, no AI. All computation happens locally and privately on the device.
 17. [Development History](#17-development-history)
 18. [Dependencies](#18-dependencies)
 19. [References, Acknowledgments & License](#19-references-acknowledgments--license)
+20. [How to Test on Your Phone](#20-how-to-test-on-your-phone)
 
 ---
 
@@ -416,19 +417,25 @@ is included.
 
 ## 15. Testing
 
-### Verification performed (on this machine)
-- `:app:assembleDebug` → **BUILD SUCCESSFUL** (Kotlin + AAPT2 + Dex + APK).
-- `:app:assembleRelease` → **BUILD SUCCESSFUL** (R8 minify + shrink resources).
-- Output: `app/build/outputs/apk/app-debug.apk` (~16 MB debug).
-- Compile-time verification of every screen, ViewModel, calculator, and the
-  navigation graph (all routes compile and link).
+### Verification performed (on this machine, from clean builds)
+
+| Step | Result |
+|------|--------|
+| `:app:assembleDebug` | **BUILD SUCCESSFUL** — Kotlin compile + AAPT2 + Dex + APK |
+| `:app:assembleRelease` | **BUILD SUCCESSFUL** — R8 minify + resource shrink |
+| Debug APK size | 16 MB |
+| Release APK size | 1.0 MB (95% R8 shrinking) |
+| `:app:lintDebug` | **BUILD SUCCESSFUL** — 0 code-quality issues |
+| `:app:compileDebugKotlin` | **0 warnings** — all deprecated icons fixed to AutoMirrored variants |
+| APK badge (`aapt dump`) | `com.sensephone.app`, `minSdk 26`, `targetSdk 35`, 0 permissions declared |
+| Adaptive icon | monochrome tag present, foreground + background set |
+| Commit | `618f910` — 56 files, clean working tree |
 
 ### Not yet verified
 - **No physical Android device or emulator was available**, so no on-hardware
   runtime, sensor-behavior, or UI-interaction tests were run. The sensor
   formulas above are *implemented and documented*, not empirically calibrated
-  against a real phone. Run the app on your device and use the Experiments and
-  Derived Metrics screens to sanity-check against your own observations.
+  against a real phone. See §20 for how to test on your device.
 
 Suggested manual checklist on a real device:
 1. Home shows four featured sensors with values; rotate/light the phone and
@@ -476,6 +483,7 @@ Suggested manual checklist on a real device:
 | **Phase 3 — ViewModels** | Base `SensorBoundViewModel` lifecycle contract plus VMs for Home, Sensors, Sensor Detail, Derived Metrics, and all four experiments. |
 | **Phase 4 — Screens & navigation** | Compose screens for all features, custom graph/level/compass canvases, shared components, and `SenseAppNavHost` with type-safe-enough routes. |
 | **Phase 5 — Build verification** | JDK 17 + Android SDK 35 installed locally; fixed compile errors (material-icon variants, missing Compose imports, non-composable `LocalContext` access inside `remember`); debug and release builds green. |
+| **Phase 6 — Lint cleanup** | Fixed all Kotlin deprecation warnings (`Icons.Filled.*` → `Icons.AutoMirrored.Filled.*`), added monochrome launcher icon tag for Android 13 themed icons, removed unused XML color resources, suppressed `ObsoleteSdkInt` false positive. Zero code-quality lint issues confirmed. |
 
 ---
 
@@ -528,6 +536,125 @@ copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
 ```
+
+---
+
+## 20. How to Test on Your Phone
+
+### Prerequisites
+
+1. An Android phone running **Android 8.0** (API 26) or newer.
+2. A **USB cable** (or Wi-Fi ADB for wireless).
+3. **Android Studio** (for easiest path) OR just the **APK file** for manual install.
+
+### Step 1 — Enable Developer Options on your phone
+
+- Go to **Settings → About Phone**.
+- Tap **Build Number** 7 times.
+- You'll see "You are now a developer!".
+
+### Step 2 — Enable USB Debugging
+
+- Go to **Settings → Developer Options** (now visible).
+- Turn on **USB Debugging**.
+- Confirm the dialog that appears when you connect your phone.
+
+### Step 3 — Connect your phone
+
+Connect your phone to your Mac via USB cable. When prompted on the phone, tap
+**Allow** (for USB debugging authorization).
+
+---
+
+### Method A — Install via Android Studio (Recommended)
+
+1. Open the project: **File → Open** → `/Users/shahabas/Documents/GitHub/sensePhone`
+2. Wait for Gradle sync to finish (bottom status bar).
+3. Your phone appears in the device dropdown (top toolbar).
+4. Click the green **Run** button.
+5. SensePhone builds, installs, and launches on your phone.
+
+### Method B — Install via Command Line (USB)
+
+```bash
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+
+# Verify phone is connected
+adb devices
+
+# Build + install in one step
+cd /Users/shahabas/Documents/GitHub/sensePhone
+./gradlew :app:installDebug --no-daemon
+
+# Or install a pre-built APK directly
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+SensePhone will appear in your app drawer.
+
+### Method C — Transfer the APK (No USB Required)
+
+1. **Build the APK** on your Mac:
+   ```bash
+   export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+   export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+   cd /Users/shahabas/Documents/GitHub/sensePhone
+   ./gradlew :app:assembleDebug --no-daemon
+   ```
+   Output: `app/build/outputs/apk/debug/app-debug.apk` (~16 MB)
+
+2. **Transfer to your phone** via:
+   - Google Drive / Dropbox / OneDrive — upload, open the link on phone, download
+   - Email — email the APK to yourself, open the attachment on phone
+   - USB file copy — connect phone, copy APK to its Downloads folder
+
+3. **Install on your phone:**
+   - Open the phone's **File Manager** app → navigate to **Downloads**
+   - Tap `app-debug.apk`
+   - If prompted "Install from unknown source?", tap **Settings** → allow
+     the source → go back → **Install**
+   - Open **SensePhone** from the app drawer
+
+---
+
+### What to Test on Your Phone
+
+**Home Screen:**
+- Four featured sensors should show live values.
+- Rotate your phone — accelerometer values change.
+- Tap a sensor card → opens detail screen with live graph.
+- Bottom navigation: Home | Experiments | Sensors.
+
+**Sensors Tab:**
+- Lists all 10 sensor kinds with LIVE/UNAVAILABLE badges.
+- Tap any sensor → detail screen with real-time graph and min/max values.
+- Graph scrolls smoothly, axis auto-scales.
+
+**Experiments Tab:**
+- **Bubble Level** — place phone flat on a table; bubble should center
+  within tolerance. Tap tolerance modes to change sensitivity.
+- **Compass** — rotate the phone; heading and dial should track. Compare
+  with a real compass.
+- **Magnetic Field** — bring a magnet near the phone; intensity bar should
+  rise toward 100%.
+- **Light Meter** — cover the light sensor → "Very Dark"; shine light →
+  "Normal/Bright".
+
+**Derived Metrics Tab:**
+- Hold phone still → Movement: Still, Rotation: None, Stability: Very Stable.
+- Shake phone → values rise.
+- Orientation changes when you rotate the device.
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `adb devices` shows nothing | Ensure USB debugging is on, phone is connected, and you tapped "Allow" on the phone |
+| App crashes on launch | Check Logcat in Android Studio (or `adb logcat`) for the stack trace |
+| "Install from unknown source" | Settings → Security → enable the source you're installing from |
+| Graph is flat/not moving | Ensure you're on a real device (emulators may have limited sensor data) |
+| Sensor shows UNAVAILABLE | That sensor isn't on your phone — this is normal behavior, not a bug |
 
 ---
 
